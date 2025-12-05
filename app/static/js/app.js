@@ -66,6 +66,18 @@ function updateDashboard(stats) {
     // Countdown
     document.getElementById('days-left').textContent = stats.jours_restants;
 
+    // Citation dynamique avec jours restants
+    const daysText = document.getElementById('days-text');
+    if (daysText) {
+        if (stats.jours_restants <= 0) {
+            daysText.textContent = "aujourd'hui";
+        } else if (stats.jours_restants === 1) {
+            daysText.textContent = "demain";
+        } else {
+            daysText.textContent = stats.jours_restants + " jours";
+        }
+    }
+
     // Budget cards
     document.getElementById('budget-fixe').textContent = formatCurrency(stats.budget_fixe);
     document.getElementById('budget-depense').textContent = formatCurrency(stats.budget_depense);
@@ -118,6 +130,104 @@ function updateDashboard(stats) {
 
     // Budget chart
     renderBudgetChart(stats.par_categorie);
+
+    // Budget Impact: Estimatif vs Réel
+    renderBudgetComparison(stats);
+}
+
+function renderBudgetComparison(stats) {
+    // Totaux
+    document.getElementById('total-estimatif').textContent = formatCurrency(stats.total_estimatif);
+    document.getElementById('total-reel').textContent = formatCurrency(stats.total_reel);
+
+    // Écart
+    const ecart = stats.ecart;
+    const ecartPourcentage = stats.ecart_pourcentage;
+    const ecartCard = document.getElementById('ecart-card');
+    const ecartMontant = document.getElementById('ecart-montant');
+    const ecartPourcentageEl = document.getElementById('ecart-pourcentage');
+    const ecartLabel = document.getElementById('ecart-label');
+
+    if (ecart > 0) {
+        // Dépassement
+        ecartCard.className = 'bg-gray-100 rounded-lg p-4';
+        ecartMontant.className = 'text-xl font-bold text-red-600';
+        ecartMontant.textContent = '+' + formatCurrency(ecart);
+        ecartPourcentageEl.className = 'text-sm font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600';
+        ecartPourcentageEl.textContent = '+' + ecartPourcentage + '%';
+        ecartLabel.textContent = '⚠️ Dépassement';
+        ecartLabel.className = 'text-xs text-red-500 mt-1';
+    } else if (ecart < 0) {
+        // Économie
+        ecartCard.className = 'bg-gray-100 rounded-lg p-4';
+        ecartMontant.className = 'text-xl font-bold text-green-600';
+        ecartMontant.textContent = formatCurrency(ecart);
+        ecartPourcentageEl.className = 'text-sm font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-600';
+        ecartPourcentageEl.textContent = ecartPourcentage + '%';
+        ecartLabel.textContent = '✅ Économie';
+        ecartLabel.className = 'text-xs text-green-500 mt-1';
+    } else {
+        // Égal
+        ecartCard.className = 'bg-gray-100 rounded-lg p-4';
+        ecartMontant.className = 'text-xl font-bold text-gray-800';
+        ecartMontant.textContent = formatCurrency(0);
+        ecartPourcentageEl.className = 'text-sm font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-600';
+        ecartPourcentageEl.textContent = '0%';
+        ecartLabel.textContent = 'Conforme';
+        ecartLabel.className = 'text-xs text-gray-400 mt-1';
+    }
+
+    // Barres comparatives par catégorie
+    const container = document.getElementById('budget-comparison');
+    container.innerHTML = '';
+
+    const maxValue = Math.max(
+        ...Object.values(stats.par_categorie).map(c => Math.max(c.estimatif || 0, c.depense || 0))
+    );
+
+    for (const cat of CATEGORIES) {
+        const data = stats.par_categorie[cat.id];
+        if (!data || (data.estimatif === 0 && data.depense === 0)) continue;
+
+        const estimatifWidth = maxValue > 0 ? (data.estimatif / maxValue * 100) : 0;
+        const reelWidth = maxValue > 0 ? (data.depense / maxValue * 100) : 0;
+        const catEcart = data.depense - data.estimatif;
+        const isOver = catEcart > 0;
+
+        const html = `
+            <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-medium text-gray-700 text-sm">${cat.icone} ${cat.nom}</span>
+                    ${catEcart !== 0 && data.depense > 0 ? `
+                        <span class="text-xs font-medium px-2 py-0.5 rounded-full ${isOver ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
+                            ${isOver ? '+' : ''}${formatCurrency(catEcart)}
+                        </span>
+                    ` : ''}
+                </div>
+                <div class="space-y-1.5">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-blue-600 w-16">Estimatif</span>
+                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-400 h-2 rounded-full transition-all" style="width: ${estimatifWidth}%"></div>
+                        </div>
+                        <span class="text-xs text-gray-600 w-24 text-right">${formatCurrency(data.estimatif)}</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-green-600 w-16">Réel</span>
+                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                            <div class="${isOver ? 'bg-red-400' : 'bg-green-400'} h-2 rounded-full transition-all" style="width: ${reelWidth}%"></div>
+                        </div>
+                        <span class="text-xs text-gray-600 w-24 text-right">${formatCurrency(data.depense)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.innerHTML += html;
+    }
+
+    if (container.innerHTML === '') {
+        container.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Ajoutez des tâches pour voir la comparaison</p>';
+    }
 }
 
 function updateTasksStats(tasks) {

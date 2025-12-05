@@ -4,23 +4,31 @@
 <div class="container mx-auto px-4 py-8 max-w-7xl">
 
     <!-- Header -->
-    <header class="flex justify-between items-center mb-6">
-        <div class="flex items-center gap-4">
-            <h1 class="text-2xl font-bold text-gray-800">
-                <span class="text-3xl">💍</span> Notre Mariage
-            </h1>
-        </div>
-        <div class="flex items-center gap-3">
-            <div id="countdown" class="bg-red-600 text-white px-5 py-2 rounded-full font-bold text-lg shadow">
-                J-<span id="days-left">--</span>
+    <header class="mb-6">
+        <div class="flex justify-between items-center mb-4">
+            <div class="flex items-center gap-4">
+                <h1 class="text-2xl font-bold text-gray-800">
+                    <span class="text-3xl">💍</span> Notre Mariage
+                </h1>
             </div>
-            <button onclick="openConfigModal()" class="p-2.5 bg-white rounded-full shadow hover:shadow-md transition-shadow border border-gray-200">
-                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-            </button>
+            <div class="flex items-center gap-3">
+                <div id="countdown" class="bg-red-600 text-white px-5 py-2 rounded-full font-bold text-lg shadow">
+                    J-<span id="days-left">--</span>
+                </div>
+                <button onclick="openConfigModal()" class="p-2.5 bg-white rounded-full shadow hover:shadow-md transition-shadow border border-gray-200">
+                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
+        <!-- Citation -->
+        <p class="text-gray-500 italic text-sm">
+            <span class="text-rose-400 not-italic">♥</span>
+            « Un jour, nous l'avons rêvé ; aujourd'hui, c'est notre projet ; et dans <span id="days-text" class="text-rose-500 font-medium not-italic">quelques jours</span>, il deviendra le début de notre nouvelle vie à deux. »
+            <span class="text-rose-400 font-medium not-italic">— {{ config.nom_partenaire_1 }} & {{ config.nom_partenaire_2 }}</span>
+        </p>
     </header>
 
     <!-- Tabs Navigation -->
@@ -92,6 +100,40 @@
                 <div id="category-progress" class="space-y-3">
                     <!-- Filled by JS -->
                 </div>
+            </div>
+        </div>
+
+        <!-- Budget Impact: Estimatif vs Réel -->
+        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 mb-6">
+            <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span class="text-xl">📊</span> Impact Budget : Estimatif vs Réel
+            </h3>
+
+            <!-- Résumé global -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                <div class="bg-gray-100 rounded-lg p-4">
+                    <div class="text-sm text-gray-500 font-medium mb-1">Total Estimatif</div>
+                    <div id="total-estimatif" class="text-xl font-bold text-gray-800">0 Ar</div>
+                    <div class="text-xs text-gray-400 mt-1">Prévisionnel</div>
+                </div>
+                <div class="bg-gray-100 rounded-lg p-4">
+                    <div class="text-sm text-gray-500 font-medium mb-1">Total Réel</div>
+                    <div id="total-reel" class="text-xl font-bold text-gray-800">0 Ar</div>
+                    <div class="text-xs text-gray-400 mt-1">Dépensé (tâches terminées)</div>
+                </div>
+                <div id="ecart-card" class="bg-gray-100 rounded-lg p-4">
+                    <div class="text-sm text-gray-500 font-medium mb-1">Écart</div>
+                    <div class="flex items-baseline gap-2">
+                        <span id="ecart-montant" class="text-xl font-bold text-gray-800">0 Ar</span>
+                        <span id="ecart-pourcentage" class="text-sm font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">0%</span>
+                    </div>
+                    <div id="ecart-label" class="text-xs text-gray-400 mt-1">Par rapport à l'estimatif</div>
+                </div>
+            </div>
+
+            <!-- Barres comparatives par catégorie -->
+            <div class="space-y-3" id="budget-comparison">
+                <!-- Filled by JS -->
             </div>
         </div>
 

@@ -100,9 +100,9 @@ def get_stats():
     config = Config.query.first()
     tasks = Task.query.all()
 
-    # Calculs budget
+    # Calculs budget (utilise prix_reel si disponible, sinon prix_estimatif)
     budget_fixe = config.budget_total
-    budget_depense = sum(t.prix_reel for t in tasks if t.statut)
+    budget_depense = sum(t.prix_reel if t.prix_reel > 0 else t.prix_estimatif for t in tasks if t.statut)
     budget_restant = budget_fixe - budget_depense
     pourcentage_depense = (budget_depense / budget_fixe * 100) if budget_fixe > 0 else 0
 
@@ -130,15 +130,25 @@ def get_stats():
     par_categorie = {}
     for cat in CATEGORIES:
         cat_tasks = [t for t in tasks if t.categorie == cat['id']]
+        cat_estimatif = sum(t.prix_estimatif for t in cat_tasks)
+        # Dépense: utilise prix_reel si disponible, sinon prix_estimatif
+        cat_depense = sum(t.prix_reel if t.prix_reel > 0 else t.prix_estimatif for t in cat_tasks if t.statut)
         par_categorie[cat['id']] = {
             'nom': cat['nom'],
             'icone': cat['icone'],
             'couleur': cat['couleur'],
             'total': len(cat_tasks),
             'terminees': sum(1 for t in cat_tasks if t.statut),
-            'depense': sum(t.prix_reel for t in cat_tasks if t.statut),
+            'depense': cat_depense,
+            'estimatif': cat_estimatif,
             'pourcentage': (sum(1 for t in cat_tasks if t.statut) / len(cat_tasks) * 100) if cat_tasks else 0
         }
+
+    # Comparaison Estimatif vs Réel (utilise prix_reel si disponible, sinon prix_estimatif)
+    total_estimatif = sum(t.prix_estimatif for t in tasks)
+    total_reel = sum(t.prix_reel if t.prix_reel > 0 else t.prix_estimatif for t in tasks if t.statut)
+    ecart = total_reel - total_estimatif
+    ecart_pourcentage = ((total_reel - total_estimatif) / total_estimatif * 100) if total_estimatif > 0 else 0
 
     return jsonify({
         'budget_fixe': budget_fixe,
@@ -151,7 +161,11 @@ def get_stats():
         'pourcentage_avancement': round(pourcentage_avancement, 1),
         'top_depense': top_depense,
         'par_categorie': par_categorie,
-        'config': config.to_dict()
+        'config': config.to_dict(),
+        'total_estimatif': total_estimatif,
+        'total_reel': total_reel,
+        'ecart': ecart,
+        'ecart_pourcentage': round(ecart_pourcentage, 1)
     })
 
 @app.route('/api/categories', methods=['GET'])
