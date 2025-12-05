@@ -1,0 +1,22 @@
+# BMM Workflow Status
+# Tracks completion status of BMAD workflows
+
+project_name: PROJET-HT
+user_name: Toky
+
+# Completed Workflows
+workflows:
+  product-brief:
+    status: complete
+    output_file: docs/analysis/product-brief-PROJET-HT-2025-12-05.md
+    completed_at: 2025-12-05
+    steps_completed: [1, 2, 3, 4, 5, 6]
+
+# Next Recommended Workflows
+next_steps:
+  - workflow: prd
+    description: Create detailed Product Requirements Document
+    priority: high
+  - workflow: create-architecture
+    description: Technical architecture planning
+    priority: medium
