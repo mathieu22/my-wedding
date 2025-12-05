@@ -50,37 +50,82 @@
 
     <!-- ==================== TAB: DASHBOARD ==================== -->
     <div id="content-dashboard" class="tab-content">
-        <!-- Budget Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <!-- Budget Fixé -->
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 card-hover">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-gray-500 text-sm font-medium">Budget Fixé</span>
-                    <span class="text-xl">💰</span>
-                </div>
+        <!-- Budget Principal -->
+        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-800">💰 Budget Total</h3>
                 <div class="text-2xl font-bold text-gray-800" id="budget-fixe">0 Ar</div>
             </div>
 
-            <!-- Budget Dépensé -->
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 card-hover">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-gray-500 text-sm font-medium">Dépensé</span>
-                    <span class="text-xl">💸</span>
+            <!-- Deux colonnes: Prévisionnel vs Réel -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Colonne Prévisionnel (Estimatif) -->
+                <div class="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-lg">📋</span>
+                        <span class="font-semibold text-blue-800">Prévisionnel</span>
+                        <span class="text-xs bg-blue-200 text-blue-700 px-2 py-0.5 rounded-full">Estimatif</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-blue-600">Total prévu</span>
+                                <span id="total-estimatif" class="font-semibold text-blue-800">0 Ar</span>
+                            </div>
+                            <div class="bg-blue-200 rounded-full h-2">
+                                <div id="progress-estimatif" class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 0%"></div>
+                            </div>
+                            <div class="text-xs text-blue-500 mt-1"><span id="pourcentage-estimatif">0</span>% du budget</div>
+                        </div>
+                        <div class="pt-2 border-t border-blue-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-blue-600">Reste à prévoir</span>
+                                <span id="restant-estimatif" class="text-lg font-bold text-blue-800">0 Ar</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="text-2xl font-bold" id="budget-depense">0 Ar</div>
-                <div class="mt-2 bg-gray-100 rounded-full h-1.5">
-                    <div id="budget-progress" class="bg-red-500 h-1.5 rounded-full progress-bar" style="width: 0%"></div>
+
+                <!-- Colonne Réel (Dépensé) -->
+                <div class="bg-green-50 rounded-xl p-4 border border-green-100">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-lg">💸</span>
+                        <span class="font-semibold text-green-800">Réel</span>
+                        <span class="text-xs bg-green-200 text-green-700 px-2 py-0.5 rounded-full">Dépensé</span>
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-green-600">Total dépensé</span>
+                                <span id="total-reel" class="font-semibold text-green-800">0 Ar</span>
+                            </div>
+                            <div class="bg-green-200 rounded-full h-2">
+                                <div id="progress-reel" class="bg-green-500 h-2 rounded-full progress-bar" style="width: 0%"></div>
+                            </div>
+                            <div class="text-xs text-green-500 mt-1"><span id="pourcentage-reel">0</span>% du budget</div>
+                        </div>
+                        <div class="pt-2 border-t border-green-200">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-green-600">Reste disponible</span>
+                                <span id="restant-reel" class="text-lg font-bold text-green-800">0 Ar</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="text-xs text-gray-500 mt-1"><span id="pourcentage-depense">0</span>% du budget</div>
             </div>
 
-            <!-- Budget Restant -->
-            <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 card-hover">
-                <div class="flex items-center justify-between mb-2">
-                    <span class="text-gray-500 text-sm font-medium">Restant</span>
-                    <span class="text-xl">✨</span>
+            <!-- Indicateur d'écart -->
+            <div id="ecart-section" class="mt-4 p-3 rounded-lg bg-gray-100 hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span id="ecart-icon" class="text-lg">📊</span>
+                        <span class="text-sm text-gray-600">Écart estimatif vs réel (tâches terminées)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="ecart-montant" class="font-bold text-gray-800">0 Ar</span>
+                        <span id="ecart-badge" class="text-xs font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">0%</span>
+                    </div>
                 </div>
-                <div class="text-2xl font-bold text-gray-800" id="budget-restant">0 Ar</div>
             </div>
         </div>
 
@@ -100,40 +145,6 @@
                 <div id="category-progress" class="space-y-3">
                     <!-- Filled by JS -->
                 </div>
-            </div>
-        </div>
-
-        <!-- Budget Impact: Estimatif vs Réel -->
-        <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100 mb-6">
-            <h3 class="text-base font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <span class="text-xl">📊</span> Impact Budget : Estimatif vs Réel
-            </h3>
-
-            <!-- Résumé global -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-                <div class="bg-gray-100 rounded-lg p-4">
-                    <div class="text-sm text-gray-500 font-medium mb-1">Total Estimatif</div>
-                    <div id="total-estimatif" class="text-xl font-bold text-gray-800">0 Ar</div>
-                    <div class="text-xs text-gray-400 mt-1">Prévisionnel</div>
-                </div>
-                <div class="bg-gray-100 rounded-lg p-4">
-                    <div class="text-sm text-gray-500 font-medium mb-1">Total Réel</div>
-                    <div id="total-reel" class="text-xl font-bold text-gray-800">0 Ar</div>
-                    <div class="text-xs text-gray-400 mt-1">Dépensé (tâches terminées)</div>
-                </div>
-                <div id="ecart-card" class="bg-gray-100 rounded-lg p-4">
-                    <div class="text-sm text-gray-500 font-medium mb-1">Écart</div>
-                    <div class="flex items-baseline gap-2">
-                        <span id="ecart-montant" class="text-xl font-bold text-gray-800">0 Ar</span>
-                        <span id="ecart-pourcentage" class="text-sm font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-600">0%</span>
-                    </div>
-                    <div id="ecart-label" class="text-xs text-gray-400 mt-1">Par rapport à l'estimatif</div>
-                </div>
-            </div>
-
-            <!-- Barres comparatives par catégorie -->
-            <div class="space-y-3" id="budget-comparison">
-                <!-- Filled by JS -->
             </div>
         </div>
 

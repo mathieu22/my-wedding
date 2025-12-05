@@ -78,36 +78,64 @@ function updateDashboard(stats) {
         }
     }
 
-    // Budget cards
+    // Budget Total
     document.getElementById('budget-fixe').textContent = formatCurrency(stats.budget_fixe);
-    document.getElementById('budget-depense').textContent = formatCurrency(stats.budget_depense);
-    document.getElementById('budget-restant').textContent = formatCurrency(stats.budget_restant);
-    document.getElementById('pourcentage-depense').textContent = stats.pourcentage_depense;
-    document.getElementById('budget-progress').style.width = `${Math.min(stats.pourcentage_depense, 100)}%`;
 
-    // Color based on percentage
-    const progressBar = document.getElementById('budget-progress');
-    const depenseDiv = document.getElementById('budget-depense');
-    const restantDiv = document.getElementById('budget-restant');
+    // Prévisionnel (Estimatif)
+    document.getElementById('total-estimatif').textContent = formatCurrency(stats.total_estimatif);
+    document.getElementById('restant-estimatif').textContent = formatCurrency(stats.budget_restant_estimatif);
+    document.getElementById('pourcentage-estimatif').textContent = stats.pourcentage_estimatif;
+    document.getElementById('progress-estimatif').style.width = `${Math.min(stats.pourcentage_estimatif, 100)}%`;
 
-    if (stats.pourcentage_depense > 90) {
-        progressBar.className = 'bg-red-500 h-2 rounded-full progress-bar';
-        depenseDiv.className = 'text-3xl font-bold text-red-600';
-    } else if (stats.pourcentage_depense > 70) {
-        progressBar.className = 'bg-orange-500 h-2 rounded-full progress-bar';
-        depenseDiv.className = 'text-3xl font-bold text-orange-600';
+    // Couleur prévisionnel si dépassement
+    const restantEstimatif = document.getElementById('restant-estimatif');
+    if (stats.budget_restant_estimatif < 0) {
+        restantEstimatif.className = 'text-lg font-bold text-red-600';
+        document.getElementById('progress-estimatif').className = 'bg-red-500 h-2 rounded-full progress-bar';
     } else {
-        progressBar.className = 'bg-green-500 h-2 rounded-full progress-bar';
-        depenseDiv.className = 'text-3xl font-bold text-green-600';
+        restantEstimatif.className = 'text-lg font-bold text-blue-800';
+        document.getElementById('progress-estimatif').className = 'bg-blue-500 h-2 rounded-full progress-bar';
     }
 
-    // Budget restant color
-    if (stats.budget_restant < 0) {
-        restantDiv.className = 'text-3xl font-bold text-red-600';
-    } else if (stats.budget_restant < stats.budget_fixe * 0.1) {
-        restantDiv.className = 'text-3xl font-bold text-orange-600';
+    // Réel (Dépensé)
+    document.getElementById('total-reel').textContent = formatCurrency(stats.budget_depense_reel);
+    document.getElementById('restant-reel').textContent = formatCurrency(stats.budget_restant_reel);
+    document.getElementById('pourcentage-reel').textContent = stats.pourcentage_reel;
+    document.getElementById('progress-reel').style.width = `${Math.min(stats.pourcentage_reel, 100)}%`;
+
+    // Écart section
+    const ecartSection = document.getElementById('ecart-section');
+    if (stats.reel_taches_terminees > 0) {
+        ecartSection.classList.remove('hidden');
+        const ecart = stats.ecart;
+        const ecartMontant = document.getElementById('ecart-montant');
+        const ecartBadge = document.getElementById('ecart-badge');
+        const ecartIcon = document.getElementById('ecart-icon');
+
+        if (ecart > 0) {
+            ecartSection.className = 'mt-4 p-3 rounded-lg bg-red-50 border border-red-200';
+            ecartMontant.textContent = '+' + formatCurrency(ecart);
+            ecartMontant.className = 'font-bold text-red-600';
+            ecartBadge.textContent = '+' + stats.ecart_pourcentage + '%';
+            ecartBadge.className = 'text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600';
+            ecartIcon.textContent = '⚠️';
+        } else if (ecart < 0) {
+            ecartSection.className = 'mt-4 p-3 rounded-lg bg-green-50 border border-green-200';
+            ecartMontant.textContent = formatCurrency(ecart);
+            ecartMontant.className = 'font-bold text-green-600';
+            ecartBadge.textContent = stats.ecart_pourcentage + '%';
+            ecartBadge.className = 'text-xs font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-600';
+            ecartIcon.textContent = '✅';
+        } else {
+            ecartSection.className = 'mt-4 p-3 rounded-lg bg-gray-100';
+            ecartMontant.textContent = formatCurrency(0);
+            ecartMontant.className = 'font-bold text-gray-800';
+            ecartBadge.textContent = '0%';
+            ecartBadge.className = 'text-xs font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-600';
+            ecartIcon.textContent = '📊';
+        }
     } else {
-        restantDiv.className = 'text-3xl font-bold text-green-600';
+        ecartSection.classList.add('hidden');
     }
 
     // Top dépense
@@ -131,103 +159,6 @@ function updateDashboard(stats) {
     // Budget chart
     renderBudgetChart(stats.par_categorie);
 
-    // Budget Impact: Estimatif vs Réel
-    renderBudgetComparison(stats);
-}
-
-function renderBudgetComparison(stats) {
-    // Totaux
-    document.getElementById('total-estimatif').textContent = formatCurrency(stats.total_estimatif);
-    document.getElementById('total-reel').textContent = formatCurrency(stats.total_reel);
-
-    // Écart
-    const ecart = stats.ecart;
-    const ecartPourcentage = stats.ecart_pourcentage;
-    const ecartCard = document.getElementById('ecart-card');
-    const ecartMontant = document.getElementById('ecart-montant');
-    const ecartPourcentageEl = document.getElementById('ecart-pourcentage');
-    const ecartLabel = document.getElementById('ecart-label');
-
-    if (ecart > 0) {
-        // Dépassement
-        ecartCard.className = 'bg-gray-100 rounded-lg p-4';
-        ecartMontant.className = 'text-xl font-bold text-red-600';
-        ecartMontant.textContent = '+' + formatCurrency(ecart);
-        ecartPourcentageEl.className = 'text-sm font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600';
-        ecartPourcentageEl.textContent = '+' + ecartPourcentage + '%';
-        ecartLabel.textContent = '⚠️ Dépassement';
-        ecartLabel.className = 'text-xs text-red-500 mt-1';
-    } else if (ecart < 0) {
-        // Économie
-        ecartCard.className = 'bg-gray-100 rounded-lg p-4';
-        ecartMontant.className = 'text-xl font-bold text-green-600';
-        ecartMontant.textContent = formatCurrency(ecart);
-        ecartPourcentageEl.className = 'text-sm font-medium px-2 py-0.5 rounded-full bg-green-100 text-green-600';
-        ecartPourcentageEl.textContent = ecartPourcentage + '%';
-        ecartLabel.textContent = '✅ Économie';
-        ecartLabel.className = 'text-xs text-green-500 mt-1';
-    } else {
-        // Égal
-        ecartCard.className = 'bg-gray-100 rounded-lg p-4';
-        ecartMontant.className = 'text-xl font-bold text-gray-800';
-        ecartMontant.textContent = formatCurrency(0);
-        ecartPourcentageEl.className = 'text-sm font-medium px-2 py-0.5 rounded-full bg-gray-200 text-gray-600';
-        ecartPourcentageEl.textContent = '0%';
-        ecartLabel.textContent = 'Conforme';
-        ecartLabel.className = 'text-xs text-gray-400 mt-1';
-    }
-
-    // Barres comparatives par catégorie
-    const container = document.getElementById('budget-comparison');
-    container.innerHTML = '';
-
-    const maxValue = Math.max(
-        ...Object.values(stats.par_categorie).map(c => Math.max(c.estimatif || 0, c.depense || 0))
-    );
-
-    for (const cat of CATEGORIES) {
-        const data = stats.par_categorie[cat.id];
-        if (!data || (data.estimatif === 0 && data.depense === 0)) continue;
-
-        const estimatifWidth = maxValue > 0 ? (data.estimatif / maxValue * 100) : 0;
-        const reelWidth = maxValue > 0 ? (data.depense / maxValue * 100) : 0;
-        const catEcart = data.depense - data.estimatif;
-        const isOver = catEcart > 0;
-
-        const html = `
-            <div class="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                <div class="flex justify-between items-center mb-2">
-                    <span class="font-medium text-gray-700 text-sm">${cat.icone} ${cat.nom}</span>
-                    ${catEcart !== 0 && data.depense > 0 ? `
-                        <span class="text-xs font-medium px-2 py-0.5 rounded-full ${isOver ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}">
-                            ${isOver ? '+' : ''}${formatCurrency(catEcart)}
-                        </span>
-                    ` : ''}
-                </div>
-                <div class="space-y-1.5">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs text-blue-600 w-16">Estimatif</span>
-                        <div class="flex-1 bg-gray-200 rounded-full h-2">
-                            <div class="bg-blue-400 h-2 rounded-full transition-all" style="width: ${estimatifWidth}%"></div>
-                        </div>
-                        <span class="text-xs text-gray-600 w-24 text-right">${formatCurrency(data.estimatif)}</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <span class="text-xs text-green-600 w-16">Réel</span>
-                        <div class="flex-1 bg-gray-200 rounded-full h-2">
-                            <div class="${isOver ? 'bg-red-400' : 'bg-green-400'} h-2 rounded-full transition-all" style="width: ${reelWidth}%"></div>
-                        </div>
-                        <span class="text-xs text-gray-600 w-24 text-right">${formatCurrency(data.depense)}</span>
-                    </div>
-                </div>
-            </div>
-        `;
-        container.innerHTML += html;
-    }
-
-    if (container.innerHTML === '') {
-        container.innerHTML = '<p class="text-gray-500 text-center py-4 text-sm">Ajoutez des tâches pour voir la comparaison</p>';
-    }
 }
 
 function updateTasksStats(tasks) {

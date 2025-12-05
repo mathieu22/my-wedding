@@ -100,11 +100,18 @@ def get_stats():
     config = Config.query.first()
     tasks = Task.query.all()
 
-    # Calculs budget (utilise prix_reel si disponible, sinon prix_estimatif)
+    # Calculs budget
     budget_fixe = config.budget_total
-    budget_depense = sum(t.prix_reel if t.prix_reel > 0 else t.prix_estimatif for t in tasks if t.statut)
-    budget_restant = budget_fixe - budget_depense
-    pourcentage_depense = (budget_depense / budget_fixe * 100) if budget_fixe > 0 else 0
+
+    # Estimatif: total de toutes les tâches (prévisionnel)
+    total_estimatif = sum(t.prix_estimatif for t in tasks)
+    budget_restant_estimatif = budget_fixe - total_estimatif
+    pourcentage_estimatif = (total_estimatif / budget_fixe * 100) if budget_fixe > 0 else 0
+
+    # Réel: seulement les tâches terminées avec prix réel
+    budget_depense_reel = sum(t.prix_reel for t in tasks if t.statut and t.prix_reel > 0)
+    budget_restant_reel = budget_fixe - budget_depense_reel
+    pourcentage_reel = (budget_depense_reel / budget_fixe * 100) if budget_fixe > 0 else 0
 
     # Calculs jours restants
     today = date.today()
@@ -131,41 +138,48 @@ def get_stats():
     for cat in CATEGORIES:
         cat_tasks = [t for t in tasks if t.categorie == cat['id']]
         cat_estimatif = sum(t.prix_estimatif for t in cat_tasks)
-        # Dépense: utilise prix_reel si disponible, sinon prix_estimatif
-        cat_depense = sum(t.prix_reel if t.prix_reel > 0 else t.prix_estimatif for t in cat_tasks if t.statut)
+        cat_reel = sum(t.prix_reel for t in cat_tasks if t.statut and t.prix_reel > 0)
         par_categorie[cat['id']] = {
             'nom': cat['nom'],
             'icone': cat['icone'],
             'couleur': cat['couleur'],
             'total': len(cat_tasks),
             'terminees': sum(1 for t in cat_tasks if t.statut),
-            'depense': cat_depense,
+            'depense_reel': cat_reel,
             'estimatif': cat_estimatif,
             'pourcentage': (sum(1 for t in cat_tasks if t.statut) / len(cat_tasks) * 100) if cat_tasks else 0
         }
 
-    # Comparaison Estimatif vs Réel (utilise prix_reel si disponible, sinon prix_estimatif)
-    total_estimatif = sum(t.prix_estimatif for t in tasks)
-    total_reel = sum(t.prix_reel if t.prix_reel > 0 else t.prix_estimatif for t in tasks if t.statut)
-    ecart = total_reel - total_estimatif
-    ecart_pourcentage = ((total_reel - total_estimatif) / total_estimatif * 100) if total_estimatif > 0 else 0
+    # Écart entre estimatif et réel (pour les tâches terminées avec prix réel)
+    taches_terminees_avec_reel = [t for t in tasks if t.statut and t.prix_reel > 0]
+    estimatif_taches_terminees = sum(t.prix_estimatif for t in taches_terminees_avec_reel)
+    reel_taches_terminees = sum(t.prix_reel for t in taches_terminees_avec_reel)
+    ecart = reel_taches_terminees - estimatif_taches_terminees
+    ecart_pourcentage = ((ecart) / estimatif_taches_terminees * 100) if estimatif_taches_terminees > 0 else 0
 
     return jsonify({
         'budget_fixe': budget_fixe,
-        'budget_depense': budget_depense,
-        'budget_restant': budget_restant,
-        'pourcentage_depense': round(pourcentage_depense, 1),
+        # Estimatif (prévisionnel)
+        'total_estimatif': total_estimatif,
+        'budget_restant_estimatif': budget_restant_estimatif,
+        'pourcentage_estimatif': round(pourcentage_estimatif, 1),
+        # Réel (dépensé)
+        'budget_depense_reel': budget_depense_reel,
+        'budget_restant_reel': budget_restant_reel,
+        'pourcentage_reel': round(pourcentage_reel, 1),
+        # Écart
+        'ecart': ecart,
+        'ecart_pourcentage': round(ecart_pourcentage, 1),
+        'estimatif_taches_terminees': estimatif_taches_terminees,
+        'reel_taches_terminees': reel_taches_terminees,
+        # Autres
         'jours_restants': jours_restants,
         'taches_total': taches_total,
         'taches_terminees': taches_terminees,
         'pourcentage_avancement': round(pourcentage_avancement, 1),
         'top_depense': top_depense,
         'par_categorie': par_categorie,
-        'config': config.to_dict(),
-        'total_estimatif': total_estimatif,
-        'total_reel': total_reel,
-        'ecart': ecart,
-        'ecart_pourcentage': round(ecart_pourcentage, 1)
+        'config': config.to_dict()
     })
 
 @app.route('/api/categories', methods=['GET'])
